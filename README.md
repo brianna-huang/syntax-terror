@@ -2,6 +2,8 @@
 
 Our web application is motivated by the universal love for movies! It challenges film lovers with a game feature to test their knowledge of movies, actors, and directors. To provide a tailored experience to each user, the site also includes movie information and recommendations.
 
+NOTE: we are using the template for Swiftify (HW #2) provided to us by our instructors. 
+
 To install dependencies, run:
 
 ```
