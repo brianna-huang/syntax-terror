@@ -20,3 +20,12 @@ Then launch the application:
 npm start
 ```
 Run from the **server** directory from a terminal window, and from the **client** directory from a separate terminal window. This should automatically launch the localhost.
+
+
+Database credentials:
+
+Username: SyntaxTerror
+Password: goTeamABJJ24
+Endpoint: database-1.cdnhrrbdjibz.us-east-1.rds.amazonaws.com
+Port: 3306
+
