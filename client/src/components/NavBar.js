@@ -10,7 +10,7 @@ function NavText({ href, text, isMain }) {
       noWrap
       style={{
         marginRight: '30px',
-        fontFamily: 'monospace',
+        fontFamily: 'copperplate',
         fontWeight: 700,
         letterSpacing: '.3rem',
       }}
@@ -28,17 +28,14 @@ function NavText({ href, text, isMain }) {
   )
 }
 
-// Here, we define the NavBar. Note that we heavily leverage MUI components
-// to make the component look nice. Feel free to try changing the formatting
-// props to how it changes the look of the component.
 export default function NavBar() {
   return (
     <AppBar position='static'>
       <Container maxWidth='xl'>
         <Toolbar disableGutters>
-          <NavText href='/' text='SWIFTIFY' isMain />
-          <NavText href='/albums' text='ALBUMS' />
-          <NavText href='/songs' text='SONGS' />
+          <NavText href='/' text='MOVIE CHAIN GAME' isMain />
+          <NavText href='/albums' text='Game history' />
+          <NavText href='/songs' text='Recommendations' />
         </Toolbar>
       </Container>
     </AppBar>

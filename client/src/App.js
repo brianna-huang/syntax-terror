@@ -13,7 +13,9 @@ import AlbumInfoPage from './pages/AlbumInfoPage'
 // in this case, we only change the color scheme
 export const theme = createTheme({
   palette: {
-    primary: indigo,
+    primary: {
+      main: '#7C2327'
+    },
     secondary: amber,
   },
 });
