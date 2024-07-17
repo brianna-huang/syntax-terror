@@ -274,14 +274,41 @@ const search_songs = async function(req, res) {
   });
 }
 
+
+/************************
+ * MOVIE GAME ROUTES *
+ ************************/
+
+// Route: GET /movie_people/:movie_id
+const movie_people = async function(req, res) {
+  const movie_id = req.params.movie_id;
+  connection.query(`
+    (SELECT personID
+    FROM DirectingRole
+    WHERE movieID = '${movie_id}')
+    UNION
+    (SELECT personID
+    FROM ActingRole
+    WHERE movieID = '${movie_id}')
+  `, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json([]);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
 module.exports = {
-  author,
-  random,
-  song,
-  album,
-  albums,
-  album_songs,
-  top_songs,
-  top_albums,
-  search_songs,
+  // author,
+  // random,
+  // song,
+  // album,
+  // albums,
+  // album_songs,
+  // top_songs,
+  // top_albums,
+  // search_songs,
+  movie_people,
 }
