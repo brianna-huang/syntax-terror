@@ -7,17 +7,22 @@ import SongCard from '../components/SongCard';
 const config = require('../config.json');
 
 export default function HomePage() {
-  const [guessedMovies, setGuessedMovies] = useState({});
+  const [guessedMovies, setGuessedMovies] = useState([]);
+  const [currentMovie, setCurrentMovie] = useState('');
+  const [currentPeople, setCurrentPeople] = useState([]);
 
-  // useEffect(() => {
-  //   fetch(`http://${config.server_host}:${config.server_port}/random`)
+  // function handleClick(){
+  //   const movieTitle = document.getElementById("movieInput");
+  //   fetch(`http://${config.server_host}:${config.server_port}/movie_id/${movieTitle}`)
   //     .then(res => res.json())
-  //     .then(resJson => setSongOfTheDay(resJson));
+  //     .then(resJson => setCurrentMovie(resJson));
+  // }
 
-  //   fetch(`http://${config.server_host}:${config.server_port}/author/name`)
-  //     .then(res => res.text())
-  //     .then(resText => setAuthor(resText));
-  // }, []);
+  useEffect(() => {
+    fetch(`http://${config.server_host}:${config.server_port}/movie_people/${currentMovie}`)
+      .then(res => res.json())
+      .then(resJson => setCurrentPeople(resJson));
+  }, [currentMovie]);
 
   // const songColumns = [
   //   {
@@ -63,11 +68,16 @@ export default function HomePage() {
       <Divider />
       <h3>Guess a movie to continue the chain...</h3>
       <input type="text" id="movieInput" placeholder="Enter a movie name" />
-      <button onclick="">Add Movie</button>
+      <button onClick="handleClick()">Add Movie</button>
       <ul id="moviesList"></ul>
       <div id="score">Score: 0</div>
       <Divider />
-      <p>Put guessed movies here!</p>
+
+      <p>Guessed movies will show up here</p>
+      <p>Movie Title: {document.getElementById("movieInput")}</p>
+      <p>Movie ID: {currentMovie}</p>
+      <p>Actors & directors: {currentPeople}</p>
+
     </Container>
   );
 };
