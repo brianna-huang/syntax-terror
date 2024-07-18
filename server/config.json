@@ -1,10 +1,9 @@
-// enter credentials here
 {
-  "rds_host": "",
+  "rds_host": "database-1.cdnhrrbdjibz.us-east-1.rds.amazonaws.com",
   "rds_port": "3306",
-  "rds_user": "",
-  "rds_password": "",
-  "rds_db": "",
+  "rds_user": "SyntaxTerror",
+  "rds_password": "goTeamABJJ24",
+  "rds_db": "movieInfo",
   "server_host": "localhost",
   "server_port": "8080"
 }
