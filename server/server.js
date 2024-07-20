@@ -13,6 +13,8 @@ app.use(cors({
 
 app.get('/movie_people/:movie_id', routes.movie_people);
 app.get('/movie_id/:title', routes.movie_id);
+app.get('/new_user', routes.new_user);
+app.get('/movie_id_two', routes.movie_id_two);
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

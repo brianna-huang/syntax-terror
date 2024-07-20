@@ -12,6 +12,34 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
+/************************
+ * USER Routes *
+ ************************/
+// Route: GET /new_user
+const new_user = async function(req, res) {
+  const username = req.query.username;
+  const password = req.query.password;
+  const email = req.query.email;
+  const authToken = req.query.authToken;
+
+  if (!username || !password || !email || !authToken) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  connection.query(`
+    INSERT INTO User (username, email, password, authToken)
+    VALUES ('${username}', '${email}', '${password}', '${authToken}')
+    ON DUPLICATE KEY UPDATE authToken = '${authToken}';
+  `, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json([]);
+    } else {
+      res.json(data[0]);
+    }
+  });
+}
+
 
 /************************
  * MOVIE GAME ROUTES *
@@ -29,7 +57,7 @@ const movie_id = async function(req, res) {
       console.log(err);
       res.json([]);
     } else {
-      res.json(data[0]);
+      res.json({ message: 'User created/updated successfully', results });
     }
   });
 }
@@ -55,7 +83,34 @@ const movie_people = async function(req, res) {
   });
 }
 
+// Route: GET /movie_id2
+const movie_id_two = async function(req, res) {
+  const movie_id1 = req.query.movie_id1;
+  const movie_id2 = req.query.movie_id2;
+  connection.query(`
+  SELECT a1.personID
+  FROM ActingRole a1 JOIN ActingRole a2 ON a1.personID = a2.personID
+  WHERE a1.movieID = '${movie_id1}' AND a2.movieID = '${movie_id2}'
+  UNION
+  SELECT d1.personID
+  FROM DirectingRole d1 JOIN DirectingRole d2 ON d1.personID = d2.personID
+  WHERE d1.movieID = '${movie_id1}' AND d2.movieID = '${movie_id2}'
+
+  `, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json([]);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+
+
 module.exports = {
   movie_people,
-  movie_id
+  movie_id,
+  movie_id_two,
+  new_user
 }
