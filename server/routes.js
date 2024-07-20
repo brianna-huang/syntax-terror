@@ -44,6 +44,12 @@ const new_user = async function(req, res) {
   });
 }
 
+// Route: SET /get_auth
+const get_auth = async function(req, res) {
+  const isAuthenticated = req.oidc.isAuthenticated();
+  res.json({ isAuthenticated });
+}
+
 
 /************************
  * MOVIE GAME ROUTES *
@@ -200,5 +206,7 @@ module.exports = {
   new_user,
   user_movie_history,
   user_person_history,
-  movie_poster
+  movie_poster,
+  get_auth
+
 }

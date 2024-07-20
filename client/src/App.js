@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { indigo, amber } from '@mui/material/colors'
 import { createTheme } from "@mui/material/styles";
+import { useAuth0 } from '@auth0/auth0-react';
+
 
 import NavBar from './components/NavBar';
 import HomePage from './pages/HomePage';
@@ -25,6 +27,10 @@ export const theme = createTheme({
 // our application, with each Route component representing a page and the common
 // NavBar component allowing us to navigate between pages (with hyperlinks)
 export default function App() {
+  const { isLoading, isAuthenticated } = useAuth0();
+
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

@@ -1,4 +1,6 @@
 {
+  "authRequired": false,
+  "auth0Logout": true,
   "rds_host": "database-1.cdnhrrbdjibz.us-east-1.rds.amazonaws.com",
   "rds_port": "3306",
   "rds_user": "SyntaxTerror",

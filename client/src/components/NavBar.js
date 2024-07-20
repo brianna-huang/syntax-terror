@@ -1,14 +1,15 @@
-import { AppBar, Container, Toolbar, Typography } from '@mui/material'
+import React from 'react';
+import { AppBar, Container, Toolbar, Typography } from '@mui/material';
 import { NavLink } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 
-// The hyperlinks in the NavBar contain a lot of repeated formatting code so a
-// helper component NavText local to the file is defined to prevent repeated code.
-function NavText({ href, text, isMain }) {
+// Helper component to format navigation links
+function NavText({ href, text, isMain, onClick }) {
   return (
     <Typography
       variant={isMain ? 'h5' : 'h7'}
       noWrap
-      style={{
+      sx={{
         marginRight: '30px',
         fontFamily: 'copperplate',
         fontWeight: 700,
@@ -21,21 +22,37 @@ function NavText({ href, text, isMain }) {
           color: 'inherit',
           textDecoration: 'none',
         }}
+        onClick={onClick}
       >
         {text}
       </NavLink>
     </Typography>
-  )
+  );
 }
 
 export default function NavBar() {
+  const { loginWithRedirect, logout, user, isAuthenticated, isLoading } = useAuth0();
+
+  console.log('Is Authenticated:', isAuthenticated); // Debugging log
+  console.log('User:', user); // Debugging log
+  console.log('Loading:', isLoading); // Debugging log
+
+  if (isLoading) return <div>Loading...</div>;
+
   return (
-    <AppBar position='static'>
-      <Container maxWidth='xl'>
+    <AppBar position="static">
+      <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <NavText href='/' text='MOVIE CHAIN GAME' isMain />
-          <NavText href='/albums' text='Game history' />
-          <NavText href='/songs' text='Recommendations' />
+          <NavText href="/" text="MOVIE CHAIN GAME" isMain />
+          <NavText href="/albums" text="Game history" />
+          <NavText href="/songs" text="Recommendations" />
+          {!isAuthenticated && <button onClick={() => loginWithRedirect()}>Log in</button>}
+          {isAuthenticated && (
+            <div>
+            <p>Hello, {user.name}</p>
+            <button onClick={() => logout({ returnTo: window.location.origin })}>Log out</button>
+            </div>
+          )}
         </Toolbar>
       </Container>
     </AppBar>
