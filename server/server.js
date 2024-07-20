@@ -3,6 +3,7 @@ const cors = require('cors');
 const config = require('./config');
 const routes = require('./routes');
 
+
 const app = express();
 app.use(cors({
   origin: '*',
@@ -15,6 +16,9 @@ app.get('/movie_people/:movie_id', routes.movie_people);
 app.get('/movie_id/:title', routes.movie_id);
 app.get('/new_user', routes.new_user);
 app.get('/movie_id_two', routes.movie_id_two);
+app.get('/user_movie_history', routes.user_movie_history);
+app.get('/user_person_history', routes.user_person_history);
+app.get('/movie_poster', routes.movie_poster);
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

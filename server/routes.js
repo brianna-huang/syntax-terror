@@ -1,5 +1,7 @@
 const mysql = require('mysql')
 const config = require('./config.json')
+//need to use npm install node-fetch
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Creates MySQL connection using database credential provided in config.json
 // Do not edit. If the connection fails, make sure to check that config.json is filled out correctly
@@ -12,10 +14,12 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
+const authorizationKey = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5MTQ0NjAzMzhhNzc5Y2MyYTFjN2ZiZmY2YmFjYjYxYSIsIm5iZiI6MTcxOTk3MDMxOC4zOTEwODEsInN1YiI6IjY2Njc1ZTg0ZjlkNjI5MGE0YmRkYjM3NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.9qM0vHqXCj8eOXw5evxNitTQR8NTqj9c4hGsx4IPFVQ'
+
 /************************
  * USER Routes *
  ************************/
-// Route: GET /new_user
+// Route: SET /new_user
 const new_user = async function(req, res) {
   const username = req.query.username;
   const password = req.query.password;
@@ -48,19 +52,28 @@ const new_user = async function(req, res) {
 // Route: GET /movie_id/:title
 const movie_id = async function(req, res) {
   const title = req.params.title.toLowerCase();
-  connection.query(`
-    SELECT movieID
-    FROM Movie
-    WHERE LOWER(title) = '${title}'
-  `, (err, data) => {
-    if (err || data.length === 0) {
-      console.log(err);
-      res.json([]);
+  const titleWithWildcards = `%${title}%`;
+
+  const query = `
+    SELECT movieID, title, releaseYear 
+    FROM Movie 
+    WHERE LOWER(title) LIKE ? 
+    LIMIT 10
+  `;
+
+  connection.query(query, [titleWithWildcards], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
     } else {
-      res.json({ message: 'User created/updated successfully', results });
+      return res.json(data);
     }
   });
-}
+};
 
 // Route: GET /movie_people/:movie_id
 const movie_people = async function(req, res) {
@@ -83,7 +96,7 @@ const movie_people = async function(req, res) {
   });
 }
 
-// Route: GET /movie_id2
+// Route: GET /movie_id_two
 const movie_id_two = async function(req, res) {
   const movie_id1 = req.query.movie_id1;
   const movie_id2 = req.query.movie_id2;
@@ -106,11 +119,86 @@ const movie_id_two = async function(req, res) {
   });
 }
 
+// Route: SET /user_movie_history?userID=?&movieID=?
+const user_movie_history = async function(req, res) {
+  const userID = req.query.userID;
+  const movieID = req.query.movieID;
+
+  const query = `
+  INSERT INTO UserMovieHistory (userID, movieID, guessCount) 
+  VALUES (?, ?, 1) 
+  ON DUPLICATE KEY UPDATE guessCount = guessCount + 1;
+  `;
+
+  connection.query(query, [userID, movieID], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      return res.json(data);
+    }
+  });
+};
+
+// Route: SET /user_person_history?userID=?&personID=?
+const user_person_history = async function(req, res) {
+  const userID = req.query.userID;
+  const personID = req.query.personID;
+
+  const query = `
+  INSERT INTO UserPersonHistory (userID, personID, guessCount) 
+  VALUES (?, ?, 1) 
+  ON DUPLICATE KEY UPDATE guessCount = guessCount + 1;
+  `;
+
+  connection.query(query, [userID, personID], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      return res.json(data);
+    }
+  });
+};
+
+//ROUTE: GET /movie_poster?movieID=?
+const movie_poster = async function(req, res) {
+  const movieID = req.query.movieID;
+
+  const options = {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${authorizationKey}`
+    }
+  };
+
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/find/${movieID}?external_source=imdb_id`, options);
+    const data = await response.json();
+    res.json(data['movie_results'][0].poster_path);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch movie data' });
+  }
+};
+
 
 
 module.exports = {
   movie_people,
   movie_id,
   movie_id_two,
-  new_user
+  new_user,
+  user_movie_history,
+  user_person_history,
+  movie_poster
 }
