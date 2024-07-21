@@ -38,6 +38,9 @@ app.get('/user_movie_history', routes.user_movie_history);
 app.get('/user_person_history', routes.user_person_history);
 app.get('/movie_poster', routes.movie_poster);
 app.get('/get_auth', routes.get_auth);
+app.get('/get_userID', routes.get_userID);
+
+app.get('/track-user', routes.track_user);
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

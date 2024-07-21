@@ -21,20 +21,18 @@ const authorizationKey = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5MTQ0NjAzMzhhNzc5Y2MyY
  ************************/
 // Route: SET /new_user
 const new_user = async function(req, res) {
-  const username = req.query.username;
-  const password = req.query.password;
-  const email = req.query.email;
-  const authToken = req.query.authToken;
+  const { username, password, email, authToken } = req.body;
 
   if (!username || !password || !email || !authToken) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  connection.query(`
-    INSERT INTO User (username, email, password, authToken)
-    VALUES ('${username}', '${email}', '${password}', '${authToken}')
-    ON DUPLICATE KEY UPDATE authToken = '${authToken}';
-  `, (err, data) => {
+  const sql = `
+      INSERT INTO User (username, email, password, authToken)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE authToken = VALUES(authToken);
+    `;
+  connection.query(sql, [username, email, hashedPassword, authToken], (err, data) => {
     if (err || data.length === 0) {
       console.log(err);
       res.json([]);
@@ -50,6 +48,78 @@ const get_auth = async function(req, res) {
   res.json({ isAuthenticated });
 }
 
+// Route: GET /track_user
+const track_user = async function(req, res) {
+  const userSub = req.query.userSub;
+  const username = req.query.username;
+  const email = req.query.email;
+
+  if (!userSub || !username || !email) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    // Check if the user already exists
+    const checkUserSql = 'SELECT * FROM User WHERE authToken = ?';
+    connection.query(checkUserSql, [userSub], async (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (results.length === 0) {
+        // User does not exist, insert new user
+        const insertSql = `
+          INSERT INTO User (username, email, authToken)
+          VALUES (?, ?, ?)
+        `;
+        connection.query(insertSql, [username, email, userSub], (err, result) => {
+          if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+          }
+          res.status(200).json({ message: 'New user added successfully' });
+        });
+      } else {
+        // User exists, update token if necessary
+        const updateSql = 'UPDATE User SET authToken = ? WHERE username = ?';
+        connection.query(updateSql, [userSub, username], (err, result) => {
+          if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+          }
+          res.status(200).json({ message: 'User updated successfully' });
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    res.status(500).json({ error: 'Error processing request' });
+  }
+}
+
+const get_userID = async function(req, res) {
+  const authToken = req.query.userSub
+
+  const query = `
+    SELECT userID
+    FROM User
+    WHERE authToken = ?
+  `;
+
+  connection.query(query, [authToken], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      return res.json(data);
+    }
+  });
+};
 
 /************************
  * MOVIE GAME ROUTES *
@@ -207,6 +277,8 @@ module.exports = {
   user_movie_history,
   user_person_history,
   movie_poster,
-  get_auth
+  get_auth,
+  track_user,
+  get_userID
 
 }

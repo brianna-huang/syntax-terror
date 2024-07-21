@@ -1,83 +1,87 @@
 import { useEffect, useState } from 'react';
-import { Container, Divider, Link } from '@mui/material';
-import { NavLink } from 'react-router-dom';
+import { Container, Divider } from '@mui/material';
+import { useAuth0 } from '@auth0/auth0-react';
 
-import LazyTable from '../components/LazyTable';
-import SongCard from '../components/SongCard';
 const config = require('../config.json');
 
 export default function HomePage() {
   const [guessedMovies, setGuessedMovies] = useState([]);
   const [currentMovie, setCurrentMovie] = useState('');
   const [currentPeople, setCurrentPeople] = useState([]);
+  const [curr_userID, setCurrUserID] = useState([]);
+  const [inputValue, setInputValue] = useState('');
 
-  // function handleClick(){
-  //   const movieTitle = document.getElementById("movieInput");
-  //   fetch(`http://${config.server_host}:${config.server_port}/movie_id/${movieTitle}`)
-  //     .then(res => res.json())
-  //     .then(resJson => setCurrentMovie(resJson));
-  // }
+  const { user, isAuthenticated, isLoading } = useAuth0();
 
   useEffect(() => {
-    fetch(`http://${config.server_host}:${config.server_port}/movie_people/${currentMovie}`)
-      .then(res => res.json())
-      .then(resJson => setCurrentPeople(resJson));
+    if (isAuthenticated && user) {
+      fetch(`http://${config.server_host}:${config.server_port}/get_userID?userSub=${user.sub}`)
+        .then(res => res.json())
+        .then(resJson => setCurrUserID(resJson[0].userID))
+        .catch(error => console.error('Error fetching user ID:', error));
+    }
+  }, [user, isAuthenticated]);
+
+  useEffect(() => {
+    if (currentMovie) {
+      fetch(`http://${config.server_host}:${config.server_port}/movie_people/${currentMovie}`)
+        .then(res => res.json())
+        .then(resJson => setCurrentPeople(resJson))
+        .catch(error => console.error('Error fetching movie people:', error));
+    }
   }, [currentMovie]);
 
-  // const songColumns = [
-  //   {
-  //     field: 'title',
-  //     headerName: 'Song Title',
-  //     renderCell: (row) => <Link onClick={() => setSelectedSongId(row.song_id)}>{row.title}</Link> // A Link component is used just for formatting purposes
-  //   },
-  //   {
-  //     field: 'album',
-  //     headerName: 'Album Title',
-  //     renderCell: (row) => <NavLink to={`/albums/${row.album_id}`}>{row.album}</NavLink> // A NavLink component is used to create a link to the album page
-  //   },
-  //   {
-  //     field: 'plays',
-  //     headerName: 'Plays'
-  //   },
-  // ];
+  const handleClick = () => {
+    fetch(`http://${config.server_host}:${config.server_port}/movie_people/${inputValue}`)
+      .then(res => res.json())
+      .then(resJson => {
+        setCurrentMovie(inputValue);
+        setCurrentPeople(resJson);
+        setGuessedMovies([...guessedMovies, inputValue]);
+        setInputValue(''); // Clear input after submission
+      })
+      .catch(error => console.error('Error fetching movie:', error));
+  };
 
-  // const albumColumns = [
-  //   {
-  //     field: 'album',
-  //     headerName: 'Album Title',
-  //     renderCell: (row) => <NavLink to={`/albums/${row.album_id}`}>{row.title}</NavLink> 
-  //   },
-  //   {
-  //     field: 'plays',
-  //     headerName: 'Plays',
-  //   },
-  // ]
+  ///console.log('Is Authenticated:', isAuthenticated); // Debugging log
+  ///console.log('User:', user); // Debugging log
+  ///console.log('curr_userID:', curr_userID); // Debugging log
+  
+  if (isLoading) {
+    return <div>Loading...</div>; // Add a loading state
+  }
 
   return (
     <Container>
-      {/* {selectedSongId && <SongCard songId={selectedSongId} handleClose={() => setSelectedSongId(null)} />}
-      <h2>Check out your song of the day:&nbsp;
-        <Link onClick={() => setSelectedSongId(songOfTheDay.song_id)}>{songOfTheDay.title}</Link>
-      </h2>
-      <Divider />
-      <h2>Top Songs</h2>
-      <LazyTable route={`http://${config.server_host}:${config.server_port}/top_songs`} columns={songColumns} />
-      <Divider />
-      <h2>Top Albums</h2>
-      <LazyTable route={`http://${config.server_host}:${config.server_port}/top_albums`} columns={albumColumns} defaultPageSize={5} rowsPerPageOptions={[5, 10]}/> */}
-      <Divider />
-      <h3>Guess a movie to continue the chain...</h3>
-      <input type="text" id="movieInput" placeholder="Enter a movie name" />
-      <button onClick="handleClick()">Add Movie</button>
-      <ul id="moviesList"></ul>
-      <div id="score">Score: 0</div>
-      <Divider />
+      {isAuthenticated ? (
+        <>
+          <Divider />
+          <h3>Guess a movie to continue the chain...</h3>
+          <input 
+            type="text" 
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Enter a movie name" 
+          />
+          <button onClick={handleClick}>Add Movie</button>
+          <ul>
+            {guessedMovies.map((movie, index) => (
+              <li key={index}>{movie}</li>
+            ))}
+          </ul>
+          <div id="score">Score: {guessedMovies.length}</div>
+          <Divider />
 
-      <p>Guessed movies will show up here</p>
-      <p>Movie Title: {document.getElementById("movieInput")}</p>
-      <p>Movie ID: {currentMovie}</p>
-      <p>Actors & directors: {currentPeople}</p>
-
+          <p>Guessed movies will show up here</p>
+          <p>Movie Title: {currentMovie}</p>
+          <p>Actors & directors: {currentPeople.map(person => (
+            <span key={person.id}>{person.name} </span>
+          ))}</p>
+          <p>TEST: Current User: {curr_userID}</p>
+        </>
+      ) : (
+        <div>Please log in to see the content.</div>
+      )}
     </Container>
   );
-};
+}
