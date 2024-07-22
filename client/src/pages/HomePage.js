@@ -16,10 +16,15 @@ export default function HomePage() {
   const [commonPeople, setCommonPeople] = useState([]);
   const [invalidGuesses, setInvalidGuesses] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [validGuesses, setValidGuesses] = useState([]); // Track valid guesses
-  const [posterUrl, setPosterUrl] = useState(''); // State for movie poster URL
+  const [validGuesses, setValidGuesses] = useState([]);
+  const [posterUrl, setPosterUrl] = useState('');
   const [gameStarted, setGameStarted] = useState(false);
   const [previousPosterUrl, setPreviousPosterUrl] = useState('');
+  const [commonPeopleCounts, setCommonPeopleCounts] = useState({});
+  const [invalidGuessReason, setInvalidGuessReason] = useState('');
+  const [invalidPersonName, setInvalidPersonName] = useState('');
+  const [timer, setTimer] = useState(30);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
 
   // console.log(commonPeople)
 
@@ -37,6 +42,24 @@ export default function HomePage() {
       setGameOver(true);
     }
   }, [invalidGuesses]);
+
+  useEffect(() => {
+    let timerInterval;
+    if (isTimerRunning) {
+      timerInterval = setInterval(() => {
+        setTimer(prevTimer => {
+          if (prevTimer <= 1) {
+            clearInterval(timerInterval);
+            setGameOver(true);
+            setIsTimerRunning(false);
+            return 0;
+          }
+          return prevTimer - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timerInterval);
+  }, [isTimerRunning]);
 
   useEffect(() => {
     if (currentGuess && curr_userID) {
@@ -126,26 +149,46 @@ export default function HomePage() {
 
   const handleMovieSelect = async (movie) => {
     if (gameOver || validGuesses.some(guess => guess.movieID === movie.movieID)) return; // Prevent actions if the game is over or movie has been guessed
-
+  
     if (!currentGuess) {
       // First selection
       setCurrentGuess(movie);
       setValidGuesses([...validGuesses, movie]); // Add movie to valid guesses
+      setIsTimerRunning(true); // Start the timer
     } else if (!tempGuess) {
       // Second selection
       setTempGuess(movie);
-
+  
       try {
         const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_id_two?movie_id1=${currentGuess.movieID}&movie_id2=${movie.movieID}`);
         const data = await response.json();
-    
-        if (data.length > 0) {
+  
+        const restrictedPerson = data.find(person => commonPeopleCounts[person.personID] >= 3);
+  
+        if (data.length > 0 && !restrictedPerson) {
           // Valid guess
           setValidGuesses([...validGuesses, currentGuess, movie]); // Add both currentGuess and new movie to valid guesses
           setPreviousGuess(currentGuess);
           setCurrentGuess(movie);
           setTempGuess(null);
           setCommonPeople(data);
+          setInvalidGuessReason(''); // Clear invalid guess reason
+          setInvalidPersonName(''); // Clear invalid person name
+          setTimer(30); // Reset the timer
+  
+          // Update common people counts
+          setCommonPeopleCounts(prevCounts => {
+            const newCounts = { ...prevCounts };
+            data.forEach(person => {
+              if (newCounts[person.personID]) {
+                newCounts[person.personID]++;
+              } else {
+                newCounts[person.personID] = 1;
+              }
+            });
+            return newCounts;
+          });
+  
           // Update poster URL
           const posterResponse = await fetch(`http://${config.server_host}:${config.server_port}/movie_poster?movieID=${movie.movieID}`);
           const posterData = await posterResponse.json();
@@ -153,7 +196,10 @@ export default function HomePage() {
         } else {
           // Invalid guess
           setInvalidGuesses(prev => prev + 1);
+          setTempGuess(null);
           setCommonPeople([]);
+          setInvalidGuessReason(restrictedPerson ? 'A person has been used three times already.' : 'No common people.');
+          setInvalidPersonName(restrictedPerson ? restrictedPerson.name : '');
         }
       } catch (error) {
         console.error('Error fetching common people:', error);
@@ -161,18 +207,37 @@ export default function HomePage() {
     } else {
       // Subsequent selections
       setTempGuess(movie);
-
+  
       try {
         const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_id_two?movie_id1=${currentGuess.movieID}&movie_id2=${movie.movieID}`);
         const data = await response.json();
-
-        if (data.length > 0) {
+  
+        const restrictedPerson = data.find(person => commonPeopleCounts[person.personID] >= 3);
+  
+        if (data.length > 0 && !restrictedPerson) {
           // Valid guess
           setValidGuesses([...validGuesses, movie]); // Add new movie to valid guesses
           setPreviousGuess(currentGuess);
           setCurrentGuess(movie);
           setTempGuess(null);
           setCommonPeople(data);
+          setInvalidGuessReason(''); // Clear invalid guess reason
+          setInvalidPersonName(''); // Clear invalid person name
+          setTimer(30); // Reset the timer
+  
+          // Update common people counts
+          setCommonPeopleCounts(prevCounts => {
+            const newCounts = { ...prevCounts };
+            data.forEach(person => {
+              if (newCounts[person.personID]) {
+                newCounts[person.personID]++;
+              } else {
+                newCounts[person.personID] = 1;
+              }
+            });
+            return newCounts;
+          });
+  
           // Update poster URL
           const posterResponse = await fetch(`http://${config.server_host}:${config.server_port}/movie_poster?movieID=${movie.movieID}`);
           const posterData = await posterResponse.json();
@@ -181,12 +246,14 @@ export default function HomePage() {
           // Invalid guess
           setInvalidGuesses(prev => prev + 1);
           setCommonPeople([]);
+          setInvalidGuessReason(restrictedPerson ? 'A person has been used three times already.' : 'No common people.');
+          setInvalidPersonName(restrictedPerson ? restrictedPerson.name : '');
         }
       } catch (error) {
         console.error('Error fetching common people:', error);
       }
     }
-
+  
     setSuggestions([]);
     setMovieTitle('');
   };
@@ -204,10 +271,23 @@ export default function HomePage() {
     setGameOver(false);
     setValidGuesses([]); // Reset valid guesses
     setPosterUrl(''); // Reset poster URL
+    setTimer(30);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', height: '100vh', paddingTop: '20px' }}>
+    <div 
+    style={{
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'flex-start', 
+      height: '100vh', 
+      paddingTop: '20px',
+      //backgroundImage: 'url("/DALL·E 2024-07-22 12.48.03.webp")',
+      //backgroundSize: 'cover',
+      //backgroundPosition: 'center',
+      //backgroundRepeat: 'no-repeat'
+    }}>
       {isAuthenticated ? (
         <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
           <h2>Welcome, {user.name}!</h2>
@@ -281,9 +361,22 @@ export default function HomePage() {
                 <h4>Common People:</h4>
                 <ul>
                   {commonPeople.map((person) => (
-                    <li key={person.personID}>{person.name}</li>
+                    <li key={person.personID}>
+                      {person.name} (Appeared {commonPeopleCounts[person.personID] || 0} times)
+                    </li>
                   ))}
                 </ul>
+              </div>
+            )}
+            {invalidGuesses > 0 && invalidGuessReason && (
+              <div style={{ marginTop: '20px', color: 'red' }}>
+                <p>Invalid Guess: {invalidGuessReason}</p>
+                {invalidPersonName && <p>{invalidPersonName} has been used too many times.</p>}
+              </div>
+            )}
+            {isTimerRunning && (
+              <div style={{ position: 'fixed', top: '100px', left: '10px', fontSize: '24px', backgroundColor: 'white', padding: '5px', borderRadius: '5px' }}>
+                <p>Time Remaining: {timer} seconds</p>
               </div>
             )}
           </div>
