@@ -32,7 +32,7 @@ export default function HomePage() {
     if (isAuthenticated && user) {
       fetch(`http://${config.server_host}:${config.server_port}/get_userID?userSub=${user.sub}`)
         .then(res => res.json())
-        .then(resJson => setCurrUserID(resJson[0]?.userID)) // Ensure resJson[0] exists
+        .then(resJson => setCurrUserID(resJson[0]?.userID))
         .catch(error => console.error('Error fetching user ID:', error));
     }
   }, [user, isAuthenticated]);
