@@ -60,8 +60,8 @@ export default function NavBar() {
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <NavText href="/" text="MOVIE CHAIN GAME" isMain />
-          <NavText href="/albums" text="Game history" />
-          <NavText href="/songs" text="Recommendations" />
+          <NavText href="/game_history" text="Game history" />
+          <NavText href="/recommendations" text="Recommendations" />
           {!isAuthenticated && <button onClick={() => loginWithRedirect()}>Log in</button>}
           {isAuthenticated && (
             <div>
