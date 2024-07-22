@@ -269,7 +269,133 @@ const movie_poster = async function(req, res) {
   }
 };
 
+/************************
+ * MOVIE GAME ROUTES *
+ ************************/
 
+// Route: GET /top_movies?userID=?
+const top_movies = async function(req, res) {
+  const userID = req.query.userID;
+
+  const query = `
+  SELECT m.movieID, m.title, m.releaseYear, uh.guessCount
+  FROM UserMovieHistory uh JOIN Movie m on uh.movieID = m.movieID
+  WHERE uh.userID = ?
+  ORDER BY uh.guessCount DESC
+  LIMIT 5
+  `;
+  connection.query(query, [userID], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      return res.json(data);
+    }
+  });
+};
+
+// Route: GET /top_people?userID=?
+const top_people = async function(req, res) {
+  const userID = req.query.userID;
+
+  const query = `
+  SELECT p.personID, p.name, p.birthYear, p.deathYear, uh.guessCount
+  FROM UserPersonHistory uh
+  JOIN Person p ON uh.personID = p.personID
+  WHERE uh.userID = 31
+  ORDER BY uh.guessCount DESC
+  LIMIT 5
+  `;
+  connection.query(query, [userID], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      return res.json(data);
+    }
+  });
+};
+
+//ROUTE: GET /movie_info_TMDB?movieID=?
+const movie_info_TMDB = async function(req, res) {
+  const movieID = req.query.movieID;
+
+  const options = {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${authorizationKey}`
+    }
+  };
+
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/find/${movieID}?external_source=imdb_id`, options);
+    const data = await response.json();
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch movie data' });
+  }
+};
+
+//ROUTE: GET /person_info_TMDB?personID=?
+const person_info_TMDB = async function(req, res) {
+  const personID = req.query.personID;
+
+  const options = {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${authorizationKey}`
+    }
+  };
+
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/find/${personID}?external_source=imdb_id`, options);
+    const data = await response.json();
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch movie data' });
+  }
+};
+
+// Route: GET /known_for_titles?personID=?
+const known_for_titles = async function(req, res) {
+  const personID = req.query.personID;
+
+  const query = `
+  SELECT k.movieID, m.title, m.releaseYear, m.runtimeMinutes, m.rating, GROUP_CONCAT(g.genre SEPARATOR ', ') AS genres
+  FROM KnownForTitles k JOIN Movie m ON k.movieID = m.movieID
+  JOIN MovieGenres mg ON m.movieID = mg.movieID
+  JOIN Genre g ON mg.genreID = g.genreID
+  WHERE k.personID = ?
+  GROUP BY k.movieID, m.title, m.releaseYear, m.runtimeMinutes, m.rating;
+  `;
+  connection.query(query, [personID], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      // console.log(data)
+      return res.json(data);
+    }
+  });
+};
 
 module.exports = {
   movie_people,
@@ -281,6 +407,10 @@ module.exports = {
   movie_poster,
   get_auth,
   track_user,
-  get_userID
-
+  get_userID,
+  top_movies,
+  movie_info_TMDB,
+  top_people,
+  person_info_TMDB,
+  known_for_titles
 }

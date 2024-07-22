@@ -39,6 +39,11 @@ app.get('/user_person_history', routes.user_person_history);
 app.get('/movie_poster', routes.movie_poster);
 app.get('/get_auth', routes.get_auth);
 app.get('/get_userID', routes.get_userID);
+app.get('/top_movies', routes.top_movies);
+app.get('/movie_info_TMDB', routes.movie_info_TMDB);
+app.get('/top_people', routes.top_people);
+app.get('/person_info_TMDB', routes.person_info_TMDB);
+app.get('/known_for_titles', routes.known_for_titles);
 
 app.get('/track-user', routes.track_user);
 
