@@ -63,8 +63,8 @@ const track_user = async function(req, res) {
     const checkUserSql = 'SELECT * FROM User WHERE authToken = ?';
     connection.query(checkUserSql, [userSub], async (err, results) => {
       if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: 'Database error' });
+        console.error('Database search error:', err);
+        return res.status(500).json({ error: 'Database search error' });
       }
 
       if (results.length === 0) {
@@ -75,8 +75,8 @@ const track_user = async function(req, res) {
         `;
         connection.query(insertSql, [username, email, userSub], (err, result) => {
           if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
+            console.error('Database insert error:', err);
+            return res.status(500).json({ error: 'Database insert error' });
           }
           res.status(200).json({ message: 'New user added successfully' });
         });
@@ -85,8 +85,8 @@ const track_user = async function(req, res) {
         const updateSql = 'UPDATE User SET authToken = ? WHERE username = ?';
         connection.query(updateSql, [userSub, username], (err, result) => {
           if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
+            console.error('Database update error:', err);
+            return res.status(500).json({ error: 'Database update error' });
           }
           res.status(200).json({ message: 'User updated successfully' });
         });
@@ -125,16 +125,17 @@ const get_userID = async function(req, res) {
  * MOVIE GAME ROUTES *
  ************************/
 
-// Route: GET /movie_id/:title
+// Route: GET /movie_id/:title/
 const movie_id = async function(req, res) {
   const title = req.params.title.toLowerCase();
-  const titleWithWildcards = `%${title}%`;
+  const titleWithWildcards = `${title}%`;
 
   const query = `
     SELECT movieID, title, releaseYear 
     FROM Movie 
     WHERE LOWER(title) LIKE ? 
-    LIMIT 10
+    ORDER BY releaseYear DESC 
+    LIMIT 10;
   `;
 
   connection.query(query, [titleWithWildcards], (err, data) => {
@@ -167,6 +168,7 @@ const movie_people = async function(req, res) {
       console.log(err);
       res.json([]);
     } else {
+      //console.log('People:', data)
       res.json(data);
     }
   });
@@ -190,6 +192,7 @@ const movie_id_two = async function(req, res) {
       console.log(err);
       res.json([]);
     } else {
+      //console.log('Common People:', data)
       res.json(data);
     }
   });
