@@ -18,6 +18,10 @@ export default function HomePage() {
   const [gameOver, setGameOver] = useState(false);
   const [validGuesses, setValidGuesses] = useState([]); // Track valid guesses
   const [posterUrl, setPosterUrl] = useState(''); // State for movie poster URL
+  const [gameStarted, setGameStarted] = useState(false);
+  const [previousPosterUrl, setPreviousPosterUrl] = useState('');
+
+  // console.log(commonPeople)
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -47,7 +51,7 @@ export default function HomePage() {
           console.error('Error updating user movie history:', error);
         }
       };
-
+  
       // Update person history
       const updatePersonHistory = async () => {
         if (previousGuess) {
@@ -64,7 +68,7 @@ export default function HomePage() {
           }
         }
       };
-
+  
       updateMovieHistory();
       updatePersonHistory();
       
@@ -79,8 +83,23 @@ export default function HomePage() {
           console.error('Error fetching movie poster:', error);
         }
       };
-
+  
       fetchPosterUrl();
+  
+      // Get and set previous guess poster URL
+      if (previousGuess) {
+        const fetchPreviousPosterUrl = async () => {
+          try {
+            const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_poster?movieID=${previousGuess.movieID}`);
+            const posterData = await response.json();
+            setPreviousPosterUrl(`https://image.tmdb.org/t/p/w500/${posterData}`);
+          } catch (error) {
+            console.error('Error fetching previous movie poster:', error);
+          }
+        };
+  
+        fetchPreviousPosterUrl();
+      }
     }
   }, [currentGuess, curr_userID, previousGuess]);
 
@@ -119,7 +138,7 @@ export default function HomePage() {
       try {
         const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_id_two?movie_id1=${currentGuess.movieID}&movie_id2=${movie.movieID}`);
         const data = await response.json();
-
+    
         if (data.length > 0) {
           // Valid guess
           setValidGuesses([...validGuesses, currentGuess, movie]); // Add both currentGuess and new movie to valid guesses
@@ -130,11 +149,10 @@ export default function HomePage() {
           // Update poster URL
           const posterResponse = await fetch(`http://${config.server_host}:${config.server_port}/movie_poster?movieID=${movie.movieID}`);
           const posterData = await posterResponse.json();
-          setPosterUrl(`https://image.tmdb.org/t/p/w500/${posterData.posterPath}`);
+          setPosterUrl(`https://image.tmdb.org/t/p/w500/${posterData}`);
         } else {
           // Invalid guess
           setInvalidGuesses(prev => prev + 1);
-          setTempGuess(null);
           setCommonPeople([]);
         }
       } catch (error) {
@@ -158,7 +176,7 @@ export default function HomePage() {
           // Update poster URL
           const posterResponse = await fetch(`http://${config.server_host}:${config.server_port}/movie_poster?movieID=${movie.movieID}`);
           const posterData = await posterResponse.json();
-          setPosterUrl(`https://image.tmdb.org/t/p/w500/${posterData.posterPath}`);
+          setPosterUrl(`https://image.tmdb.org/t/p/w500/${posterData}`);
         } else {
           // Invalid guess
           setInvalidGuesses(prev => prev + 1);
@@ -175,6 +193,7 @@ export default function HomePage() {
 
   const handleRestart = () => {
     // Reset all state variables
+    setGameStarted(false); // Reset game started state
     setMovieTitle('');
     setSuggestions([]);
     setCurrentGuess(null);
@@ -198,71 +217,80 @@ export default function HomePage() {
           <h2>Please <span style={{ color: 'blue', cursor: 'pointer' }} onClick={loginWithRedirect}>log in</span> to play the game.</h2>
         </div>
       )}
-      {gameOver ? (
-        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '20px', borderRadius: '10px' }}>
-          <h2>Game Over</h2>
-          <Button variant="contained" color="primary" onClick={handleRestart}>Restart</Button>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', width: '50%', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <input
-              type="text"
-              value={movieTitle}
-              onChange={handleInputChange}
-              placeholder="Type a movie title..."
-              style={{ width: '80%', padding: '10px', fontSize: '16px' }}
-            />
-            <div style={{ marginLeft: '10px', fontSize: '16px', lineHeight: '30px' }}>
-              <strong>Invalid Guesses:</strong> {invalidGuesses}
-            </div>
+  
+      {gameStarted ? (
+        gameOver ? (
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '20px', borderRadius: '10px' }}>
+            <h2>Game Over</h2>
+            <Button variant="contained" color="primary" onClick={handleRestart}>Restart</Button>
           </div>
-          {suggestions.length > 0 && (
-            <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
-              <ul>
-                {suggestions.map((suggestion) => (
-                  <li
-                    key={suggestion.movieID}
-                    onClick={() => handleMovieSelect(suggestion)}
-                    style={{
-                      cursor: 'pointer',
-                      color: validGuesses.some(guess => guess.movieID === suggestion.movieID) ? 'red' : 'black'
-                    }}
-                  >
-                    {suggestion.title} ({suggestion.releaseYear})
-                  </li>
-                ))}
-              </ul>
+        ) : (
+          <div style={{ display: 'flex', width: '50%', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <input
+                type="text"
+                value={movieTitle}
+                onChange={handleInputChange}
+                placeholder="Type a movie title..."
+                style={{ width: '80%', padding: '10px', fontSize: '16px' }}
+              />
+              <div style={{ marginLeft: '10px', fontSize: '16px', lineHeight: '30px' }}>
+                <strong>Invalid Guesses:</strong> {invalidGuesses}
+              </div>
             </div>
-          )}
-          {(currentGuess || previousGuess) && (
-            <div style={{ marginTop: '20px', alignSelf: 'flex-start' }}>
-              <h4>Guesses:</h4>
-              {previousGuess && (
-                <div>
-                  <p><strong>Previous Guess:</strong> {previousGuess.title} ({previousGuess.releaseYear})</p>
-                </div>
-              )}
-              {currentGuess && (
-                <div>
-                  <p><strong>Current Guess:</strong> {currentGuess.title} ({currentGuess.releaseYear})</p>
-                  {posterUrl && (
-                    <img src={posterUrl} alt={currentGuess.title} style={{ marginTop: '10px', maxWidth: '200px', maxHeight: '300px' }} />
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          {commonPeople.length > 0 && (
-            <div style={{ marginTop: '20px', alignSelf: 'flex-start' }}>
-              <h4>Common People:</h4>
-              <ul>
-                {commonPeople.map((person) => (
-                  <li key={person.personID}>{person.personID}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+            {suggestions.length > 0 && (
+              <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
+                <ul>
+                  {suggestions.map((suggestion) => (
+                    <li
+                      key={suggestion.movieID}
+                      onClick={() => handleMovieSelect(suggestion)}
+                      style={{
+                        cursor: 'pointer',
+                        color: validGuesses.some(guess => guess.movieID === suggestion.movieID) ? 'red' : 'black'
+                      }}
+                    >
+                      {suggestion.title} ({suggestion.releaseYear})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {(currentGuess || previousGuess) && (
+              <div style={{ marginTop: '20px', alignSelf: 'flex-start', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                {previousGuess && (
+                  <div style={{ flex: '1', textAlign: 'left' }}>
+                    <p><strong>Previous Guess:</strong> {previousGuess.title} ({previousGuess.releaseYear})</p>
+                    {previousPosterUrl && (
+                      <img src={previousPosterUrl} alt={previousGuess.title} style={{ marginTop: '10px', maxWidth: '200px', maxHeight: '300px' }} />
+                    )}
+                  </div>
+                )}
+                {currentGuess && (
+                  <div style={{ flex: '1', textAlign: 'right' }}>
+                    <p><strong>Current Guess:</strong> {currentGuess.title} ({currentGuess.releaseYear})</p>
+                    {posterUrl && (
+                      <img src={posterUrl} alt={currentGuess.title} style={{ marginTop: '10px', maxWidth: '200px', maxHeight: '300px' }} />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {commonPeople.length > 0 && (
+              <div style={{ marginTop: '20px', alignSelf: 'center', textAlign: 'center' }}>
+                <h4>Common People:</h4>
+                <ul>
+                  {commonPeople.map((person) => (
+                    <li key={person.personID}>{person.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )
+      ) : (
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+          <Button variant="contained" color="primary" onClick={() => setGameStarted(true)}>Click to Start Game</Button>
         </div>
       )}
     </div>

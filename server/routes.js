@@ -168,7 +168,6 @@ const movie_people = async function(req, res) {
       console.log(err);
       res.json([]);
     } else {
-      //console.log('People:', data)
       res.json(data);
     }
   });
@@ -179,12 +178,12 @@ const movie_id_two = async function(req, res) {
   const movie_id1 = req.query.movie_id1;
   const movie_id2 = req.query.movie_id2;
   connection.query(`
-  SELECT a1.personID
-  FROM ActingRole a1 JOIN ActingRole a2 ON a1.personID = a2.personID
+  SELECT a1.personID, p1.name
+  FROM ActingRole a1 JOIN ActingRole a2 ON a1.personID = a2.personID JOIN Person p1 ON p1.personID = a1.personID
   WHERE a1.movieID = '${movie_id1}' AND a2.movieID = '${movie_id2}'
   UNION
-  SELECT d1.personID
-  FROM DirectingRole d1 JOIN DirectingRole d2 ON d1.personID = d2.personID
+  SELECT d1.personID, p2.name
+  FROM DirectingRole d1 JOIN DirectingRole d2 ON d1.personID = d2.personID JOIN Person p2 ON p2.personID = d1.personID 
   WHERE d1.movieID = '${movie_id1}' AND d2.movieID = '${movie_id2}'
 
   `, (err, data) => {
@@ -192,7 +191,7 @@ const movie_id_two = async function(req, res) {
       console.log(err);
       res.json([]);
     } else {
-      //console.log('Common People:', data)
+      // console.log('Common People:', data)
       res.json(data);
     }
   });
