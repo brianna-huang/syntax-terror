@@ -269,10 +269,6 @@ const movie_poster = async function(req, res) {
   }
 };
 
-/************************
- * MOVIE GAME ROUTES *
- ************************/
-
 // Route: GET /top_movies?userID=?
 const top_movies = async function(req, res) {
   const userID = req.query.userID;
@@ -397,6 +393,33 @@ const known_for_titles = async function(req, res) {
   });
 };
 
+// Route: GET /movie_recs
+const movie_recs = async function(req, res) {
+  connection.query(`
+    WITH TopGenres AS (
+      SELECT g.genreID 
+      FROM MovieGenres mg JOIN UserMovieHistory mh ON mh.movieID = mg.movieID
+      GROUP BY mg.genreID
+      ORDER BY COUNT(*) DESC
+      LIMIT 3
+    ),
+    MovieRecs AS (
+      SELECT m.movieID, g.genreID, r.rating
+      FROM Movie m JOIN MovieGenres g ON m.movieID = g.movieID
+      WHERE g.genreID IN (SELECT genreID FROM TopGenres)
+    )
+    SELECT m.movieID, m.releaseYear
+    FROM MovieRecs m
+    ORDER BY m.rating DESC
+    LIMIT 5
+  `, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json([]);
+    }
+  })
+};
+
 module.exports = {
   movie_people,
   movie_id,
@@ -412,5 +435,6 @@ module.exports = {
   movie_info_TMDB,
   top_people,
   person_info_TMDB,
-  known_for_titles
+  known_for_titles,
+  movie_recs
 }

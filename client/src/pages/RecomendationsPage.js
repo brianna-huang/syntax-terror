@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Container, Divider, Link } from '@mui/material';
 
 const config = require('../config.json');
 
 export default function Recommendations() {
   const [curr_userID, setCurrUserID] = useState(null);
+  const [movieRecs, setMovieRecs] = useState([]);
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
-
+  
   useEffect(() => {
     if (isAuthenticated && user) {
       fetch(`http://${config.server_host}:${config.server_port}/get_userID?userSub=${user.sub}`)
@@ -17,13 +19,18 @@ export default function Recommendations() {
     }
   }, [user, isAuthenticated]);
 
+  useEffect(() => {
+    fetch(`http://${config.server_host}:${config.server_port}/movie_recs`)
+      .then(res => res.json())
+      .then(resJson => setMovieRecs(resJson))
+  }, []);
+
   if (isLoading) {
     return <div>Loading...</div>; // Add a loading state
   }
 
-  
-
   return (
+  <Container>
     <div 
     style={{
       display: 'flex', 
@@ -42,8 +49,13 @@ export default function Recommendations() {
           <h2>Please <span style={{ color: 'blue', cursor: 'pointer' }} onClick={loginWithRedirect}>log in</span> to play the game.</h2>
         </div>
       )}
-  
-      
     </div>
+
+    <Divider />
+    <h3>Movie recommendations:</h3>
+    <p>We can add a LazyTable here</p>
+    <p>{movieRecs}</p>
+    
+    </Container>
   );
 }
