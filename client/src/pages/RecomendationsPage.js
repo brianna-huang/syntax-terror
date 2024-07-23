@@ -51,7 +51,6 @@ export default function Recommendations() {
       )}
     </div>
 
-    <Divider />
     <h3>Movie recommendations:</h3>
     <p>We can add a LazyTable here</p>
     <p>{movieRecs}</p>
