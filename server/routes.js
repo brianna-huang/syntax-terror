@@ -420,6 +420,36 @@ const movie_recs = async function(req, res) {
   })
 };
 
+const hint = async function(req, res){
+  const movie_id = req.params.movie_id;
+  const query = `
+  WITH t as(
+    (SELECT a.movieID, a.personID FROM ActingRole a  UNION
+    SELECT d.movieID, d.personID FROM DirectingRole d)
+    ),
+    ids as (
+    SELECT t.personID
+    FROM  t
+    WHERE t.movieID = '${movie_id}'
+)
+SELECT DISTINCT t.movieID
+FROM t
+WHERE t.personID IN (SELECT * FROM ids) ;
+  `
+  connection.query(query, (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      return res.json(data);
+    }
+  })
+}
+
 module.exports = {
   movie_people,
   movie_id,
