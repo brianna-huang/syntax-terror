@@ -302,7 +302,7 @@ const top_people = async function(req, res) {
   SELECT p.personID, p.name, p.birthYear, p.deathYear, uh.guessCount
   FROM UserPersonHistory uh
   JOIN Person p ON uh.personID = p.personID
-  WHERE uh.userID = 31
+  WHERE uh.userID = ?
   ORDER BY uh.guessCount DESC
   LIMIT 5
   `;
