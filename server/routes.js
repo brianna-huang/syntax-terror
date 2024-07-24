@@ -395,31 +395,45 @@ const known_for_titles = async function(req, res) {
 
 // Route: GET /movie_recs
 const movie_recs = async function(req, res) {
-  connection.query(`
-    WITH TopGenres AS (
-      SELECT g.genreID 
-      FROM MovieGenres mg JOIN UserMovieHistory mh ON mh.movieID = mg.movieID
+  const userID = req.query.userID;
+
+  const query = `
+  WITH TopGenres AS (
+      SELECT g.genreID
+      FROM MovieGenres mg JOIN UserMovieHistory mh ON mh.movieID = mg.movieID JOIN Genre g on g.genreID = mg.genreID
+      WHERE mh.UserID = ?
       GROUP BY mg.genreID
       ORDER BY COUNT(*) DESC
       LIMIT 3
-    ),
-    MovieRecs AS (
-      SELECT m.movieID, g.genreID, r.rating
-      FROM Movie m JOIN MovieGenres g ON m.movieID = g.movieID
+  ),
+  History AS (SELECT *
+              FROM UserMovieHistory
+              WHERE userID = ?
+  ),
+  MovieRecs AS (
+      SELECT m.movieID, g.genreID, m.releaseYear, m.title, m.rating
+      FROM Movie m JOIN MovieGenres g ON m.movieID = g.movieID JOIN UserMovieHistory umh ON umh.movieID = m.movieID
       WHERE g.genreID IN (SELECT genreID FROM TopGenres)
-    )
-    SELECT m.movieID, m.releaseYear
-    FROM MovieRecs m
-    ORDER BY m.rating DESC
-    LIMIT 5
-  `, (err, data) => {
+      AND m.numVotes > 999.0 AND m.movieID NOT IN (SELECT movieID FROM History)
+  )
+  SELECT DISTINCT (m.movieID), m.releaseYear, m.title, m.rating
+  FROM MovieRecs m
+  ORDER BY m.rating DESC
+  LIMIT 5
+  `;
+  connection.query(query, [userID, userID], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
     if (data.length === 0) {
       return res.json([]);
     } else {
-      console.log(data)
+      // console.log(data)
       return res.json(data);
     }
-  })
+  });
 };
 
 const hint = async function(req, res){
