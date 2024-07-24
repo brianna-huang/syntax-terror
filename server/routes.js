@@ -466,6 +466,56 @@ WHERE t.personID IN (SELECT * FROM ids) ;
   })
 }
 
+//ROUTE: GET /in_theatres
+const in_theatres = async function(req, res) {
+  const personID = req.query.personID;
+
+  const options = {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${authorizationKey}`
+    }
+  };
+
+  try {
+    const response = await fetch('https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1', options);
+    const data = await response.json();
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch movie data' });
+  }
+};
+
+// Route: GET /top_genre_ids?userID=?
+const top_genre_ids = async function(req, res) {
+  const userID = req.query.userID;
+
+  const query = `
+  SELECT g.genreID
+  FROM MovieGenres mg JOIN UserMovieHistory mh ON mh.movieID = mg.movieID JOIN Genre g on g.genreID = mg.genreID
+  WHERE mh.UserID = ?
+  GROUP BY mg.genreID
+  ORDER BY COUNT(*) DESC
+  LIMIT 3
+  `;
+  connection.query(query, [userID], (err, data) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      // console.log(data)
+      return res.json(data);
+    }
+  });
+};
+
 module.exports = {
   movie_people,
   movie_id,
@@ -482,5 +532,7 @@ module.exports = {
   top_people,
   person_info_TMDB,
   known_for_titles,
-  movie_recs
+  movie_recs,
+  in_theatres,
+  top_genre_ids
 }

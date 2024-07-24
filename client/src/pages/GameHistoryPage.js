@@ -116,7 +116,7 @@ export default function GameHistoryPage() {
                   <TableCell>Title</TableCell>
                   <TableCell>Release Year</TableCell>
                   <TableCell>Guess Count</TableCell>
-                  <TableCell>Synopsis</TableCell>
+                  <TableCell>Plot Summary</TableCell>
                   <TableCell>Poster</TableCell>
                 </TableRow>
               </TableHead>
@@ -168,10 +168,13 @@ export default function GameHistoryPage() {
                 {topPeople.map((person) => {
                     const info = personInfo[person.personID];
                     const knownFor = knownForTitles[person.personID];
+                    const knownForReturn = knownFor ? knownFor.replace(/, /g, '\n') : 'N/A';
                     return (
                     <TableRow key={person.personID}>
                         <TableCell>{person.name}</TableCell>
-                        <TableCell>{knownFor || 'N/A'}</TableCell>
+                        <TableCell style={{ whiteSpace: 'pre-line' }}>
+                            {knownForReturn || 'N/A'}
+                        </TableCell>
                         <TableCell>{person.birthYear}</TableCell>
                         <TableCell>{person.deathYear || 'N/A'}</TableCell>
                         <TableCell>{person.guessCount}</TableCell>

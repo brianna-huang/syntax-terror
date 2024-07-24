@@ -45,6 +45,8 @@ app.get('/top_people', routes.top_people);
 app.get('/person_info_TMDB', routes.person_info_TMDB);
 app.get('/known_for_titles', routes.known_for_titles);
 app.get('/movie_recs', routes.movie_recs);
+app.get('/in_theatres', routes.in_theatres);
+app.get('/top_genre_ids', routes.top_genre_ids);
 
 app.get('/track-user', routes.track_user);
 
