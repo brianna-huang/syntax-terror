@@ -131,7 +131,7 @@ export default function Recommendations() {
 
       {filteredInTheatres.length > 0 && (
         <>
-          <h3>In Theatres</h3> {/* Title for In Theatres Table */}
+          <h3>Recommended Movies In Theatres</h3> {/* Title for In Theatres Table */}
           <TableContainer component={Paper} style={{ marginTop: '20px', width: '100%' }}>
             <Table>
               <TableHead>
