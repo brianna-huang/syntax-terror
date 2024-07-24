@@ -10,6 +10,7 @@ export default function Recommendations() {
   const [movieRecs, setMovieRecs] = useState([]);
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
   
+  console.log(movieRecs)
   useEffect(() => {
     if (isAuthenticated && user) {
       fetch(`http://${config.server_host}:${config.server_port}/get_userID?userSub=${user.sub}`)
@@ -23,7 +24,7 @@ export default function Recommendations() {
     fetch(`http://${config.server_host}:${config.server_port}/movie_recs`)
       .then(res => res.json())
       .then(resJson => setMovieRecs(resJson))
-  }, []);
+  }, [user, isAuthenticated]);
 
   if (isLoading) {
     return <div>Loading...</div>; // Add a loading state

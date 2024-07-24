@@ -128,13 +128,13 @@ const get_userID = async function(req, res) {
 // Route: GET /movie_id/:title/
 const movie_id = async function(req, res) {
   const title = req.params.title.toLowerCase();
-  const titleWithWildcards = `${title}%`;
+  const titleWithWildcards = `%${title}%`;
 
   const query = `
     SELECT movieID, title, releaseYear 
     FROM Movie 
     WHERE LOWER(title) LIKE ? 
-    ORDER BY releaseYear DESC 
+    ORDER BY numVotes DESC 
     LIMIT 10;
   `;
 
@@ -413,9 +413,11 @@ const movie_recs = async function(req, res) {
     ORDER BY m.rating DESC
     LIMIT 5
   `, (err, data) => {
-    if (err || data.length === 0) {
-      console.log(err);
-      res.json([]);
+    if (data.length === 0) {
+      return res.json([]);
+    } else {
+      console.log(data)
+      return res.json(data);
     }
   })
 };

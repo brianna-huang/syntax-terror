@@ -134,7 +134,7 @@ export default function HomePage() {
     const title = event.target.value;
     setMovieTitle(title);
 
-    if (title.length > 2) {
+    if (title.length >= 2) {
       try {
         const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_id/${title}`);
         const data = await response.json();
