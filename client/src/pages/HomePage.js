@@ -26,6 +26,8 @@ export default function HomePage() {
   const [invalidPersonName, setInvalidPersonName] = useState('');
   const [timer, setTimer] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [hint, setHint] = useState([]);
+  const [ isHintVisible, setIsHintVisible ] = useState(false);
 
   console.log(validGuesses)
   console.log(score)
@@ -132,6 +134,22 @@ export default function HomePage() {
     const allGuesses = new Set(validGuesses.map((movie)=>movie.movieID))
     setScore([...allGuesses].length);
   }, [validGuesses])
+
+  useEffect(() => {
+    const updateHint = async () => {
+      try {
+        const response = await fetch(`http://${config.server_host}:${config.server_port}/hint/${currentGuess.movieID}`);
+        const newHint = await response.json();
+        setHint(newHint);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+      } catch (error) {
+        console.error('Error getting hint:', error);
+      }
+    };
+    updateHint()
+  }, [currentGuess])
 
   if (isLoading) {
     return <div>Loading...</div>; // Add a loading state
@@ -281,6 +299,13 @@ export default function HomePage() {
     setTimer(30);
   };
 
+  const handleHint = () =>{
+    setIsHintVisible(true);
+    setTimeout(() => {
+      setIsHintVisible(false);
+    }, 5000);
+  }
+
   return (
     <div 
     style={{
@@ -328,6 +353,10 @@ export default function HomePage() {
               <div style={{ marginLeft: '10px', fontSize: '14px', lineHeight: '30px' }}>
                 <strong>Score:</strong> {score}
               </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'left' }}>
+              <Button variant="contained" color="primary" onClick={handleHint}>Hint</Button>
+              {isHintVisible && <div className='hint-inner'>{hint}</div>}
             </div>
             {suggestions.length > 0 && (
               <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
