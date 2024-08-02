@@ -8,6 +8,7 @@ export default function HomePage() {
   const [curr_userID, setCurrUserID] = useState(null);
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
 
+  const [score, setScore] = useState(0);
   const [movieTitle, setMovieTitle] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [currentGuess, setCurrentGuess] = useState(null);
@@ -26,7 +27,8 @@ export default function HomePage() {
   const [timer, setTimer] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-  // console.log(commonPeople)
+  console.log(validGuesses)
+  console.log(score)
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -125,6 +127,11 @@ export default function HomePage() {
       }
     }
   }, [currentGuess, curr_userID, previousGuess]);
+
+  useEffect(() => {
+    const allGuesses = new Set(validGuesses.map((movie)=>movie.movieID))
+    setScore([...allGuesses].length);
+  }, [validGuesses])
 
   if (isLoading) {
     return <div>Loading...</div>; // Add a loading state
@@ -302,6 +309,7 @@ export default function HomePage() {
         gameOver ? (
           <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '20px', borderRadius: '10px' }}>
             <h2>Game Over</h2>
+            <h2>Final Score: {score-invalidGuesses}</h2>
             <Button variant="contained" color="primary" onClick={handleRestart}>Restart</Button>
           </div>
         ) : (
@@ -314,8 +322,11 @@ export default function HomePage() {
                 placeholder="Type a movie title..."
                 style={{ width: '80%', padding: '10px', fontSize: '16px' }}
               />
-              <div style={{ marginLeft: '10px', fontSize: '16px', lineHeight: '30px' }}>
+              <div style={{ marginLeft: '10px', fontSize: '14px', lineHeight: '30px' }}>
                 <strong>Invalid Guesses:</strong> {invalidGuesses}
+              </div>
+              <div style={{ marginLeft: '10px', fontSize: '14px', lineHeight: '30px' }}>
+                <strong>Score:</strong> {score}
               </div>
             </div>
             {suggestions.length > 0 && (
