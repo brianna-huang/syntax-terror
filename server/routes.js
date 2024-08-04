@@ -450,6 +450,7 @@ const hint = async function(req, res){
       FROM DirectingRole d
       WHERE d.movieID = '${movie_id}'
   ) t ON p.personID = t.personID;
+  LIMIT 3
   `
   connection.query(query, (err, data) => {
     if (err) {
