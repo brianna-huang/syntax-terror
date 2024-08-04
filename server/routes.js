@@ -439,18 +439,17 @@ const movie_recs = async function(req, res) {
 const hint = async function(req, res){
   const movie_id = req.params.movie_id;
   const query = `
-  WITH t as(
-    (SELECT a.movieID, a.personID FROM ActingRole a  UNION
-    SELECT d.movieID, d.personID FROM DirectingRole d)
-    ),
-    ids as (
-    SELECT t.personID
-    FROM  t
-    WHERE t.movieID = '${movie_id}'
-)
-SELECT DISTINCT t.movieID
-FROM t
-WHERE t.personID IN (SELECT * FROM ids) ;
+  SELECT DISTINCT p.name
+  FROM Person p
+  JOIN (
+      SELECT a.personID
+      FROM ActingRole a
+      WHERE a.movieID = 'tt0137523'
+      UNION
+      SELECT d.personID
+      FROM DirectingRole d
+      WHERE d.movieID = '${movie_id}'
+  ) t ON p.personID = t.personID;
   `
   connection.query(query, (err, data) => {
     if (err) {
