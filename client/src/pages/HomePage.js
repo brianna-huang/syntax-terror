@@ -28,6 +28,7 @@ export default function HomePage() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [hint, setHint] = useState([]);
   const [ isHintVisible, setIsHintVisible ] = useState(false);
+  const [debounceTimeout, setDebounceTimeout] = useState(null); 
 
   console.log(validGuesses)
   console.log(score)
@@ -151,6 +152,12 @@ export default function HomePage() {
     updateHint()
   }, [currentGuess])
 
+  useEffect(() => { // Function to clear timeout for debouncing
+    return () => {
+      if (debounceTimeout) { clearTimeout(debounceTimeout); }
+    };
+  }, [debounceTimeout]);
+
   if (isLoading) {
     return <div>Loading...</div>; // Add a loading state
   }
@@ -159,17 +166,21 @@ export default function HomePage() {
     const title = event.target.value;
     setMovieTitle(title);
 
-    if (title.length >= 2) {
-      try {
-        const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_id/${title}`);
-        const data = await response.json();
-        setSuggestions(data);
-      } catch (error) {
-        console.error('Error fetching movie suggestions:', error);
+    if (debounceTimeout) { clearTimeout(debounceTimeout) }
+    const timeoutId = setTimeout(async () => {
+      if (title.length >= 2) {
+        try {
+          const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_id/${title}`);
+          const data = await response.json();
+          setSuggestions(data);
+        } catch (error) {
+          console.error('Error fetching movie suggestions:', error);
+        }
+      } else {
+        setSuggestions([]);
       }
-    } else {
-      setSuggestions([]);
-    }
+    }, 400); // Controls number of milliseconds without typing before execution
+    setDebounceTimeout(timeoutId);
   };
 
   const handleMovieSelect = async (movie) => {
