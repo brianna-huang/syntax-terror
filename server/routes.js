@@ -426,6 +426,9 @@ const known_for_titles = async function(req, res) {
 // Route: GET /movie_recs
 const movie_recs = async function(req, res) {
   const userID = req.query.userID;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const offset = (page - 1) * limit;
 
   const query = `
   WITH TopGenres AS (
@@ -449,9 +452,9 @@ const movie_recs = async function(req, res) {
   SELECT DISTINCT (m.movieID), m.releaseYear, m.title, m.rating
   FROM MovieRecs m
   ORDER BY m.rating DESC
-  LIMIT 5
+  LIMIT ? OFFSET ?
   `;
-  connection.query(query, [userID, userID], (err, data) => {
+  connection.query(query, [userID, userID, limit, offset], (err, data) => {
     if (err) {
       console.error('Error executing query:', err);
       return res.status(500).json({ error: 'Database error' });
