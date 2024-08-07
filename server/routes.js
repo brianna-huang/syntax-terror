@@ -131,11 +131,12 @@ const movie_id = async function(req, res) {
   const titleWithWildcards = `%${title}%`;
 
   const query = `
-    SELECT movieID, title, releaseYear 
-    FROM Movie 
-    WHERE LOWER(title) LIKE ? 
-    ORDER BY numVotes DESC 
-    LIMIT 10;
+  SELECT movieID, title, releaseYear
+  FROM Movie
+  WHERE lower_title LIKE ?
+  AND numVotes > 500
+  ORDER BY numVotes DESC
+  LIMIT 10;
   `;
 
   connection.query(query, [titleWithWildcards], (err, data) => {
@@ -145,7 +146,20 @@ const movie_id = async function(req, res) {
     }
 
     if (data.length === 0) {
-      return res.json([]);
+      const query2 = `
+      SELECT movieID, title, releaseYear
+      FROM Movie
+      WHERE lower_title LIKE ?
+      ORDER BY numVotes DESC
+      LIMIT 10;
+      `;
+      connection.query(query2, [titleWithWildcards], (err, data) => {
+        if (err) {
+          console.error('Error executing query:', err);
+          return res.status(500).json({ error: 'Database error' });
+        } else {
+          return res.json(data);
+        }})
     } else {
       return res.json(data);
     }

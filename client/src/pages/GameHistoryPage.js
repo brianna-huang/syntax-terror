@@ -98,7 +98,6 @@ export default function GameHistoryPage() {
     >
       {isAuthenticated ? (
         <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
-          <h2>Welcome, {user.name}!</h2>
         </div>
       ) : (
         <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
@@ -108,7 +107,7 @@ export default function GameHistoryPage() {
   
       {isAuthenticated && topMovies.length > 0 && (
         <div style={{ width: '80%', marginTop: '20px' }}>
-          <h3>Top Guessed Movies</h3>
+          <h3>Your Top Guessed Movies</h3>
           <Paper style={{ marginTop: '10px', overflowX: 'auto' }}>
             <Table>
               <TableHead>
@@ -151,7 +150,7 @@ export default function GameHistoryPage() {
   
         {isAuthenticated && topPeople.length > 0 && (
         <div style={{ width: '80%', marginTop: '40px' }}>
-            <h3>Top Guessed People</h3>
+            <h3>Your Top Guessed People</h3>
             <Paper style={{ marginTop: '10px', overflowX: 'auto' }}>
             <Table>
                 <TableHead>

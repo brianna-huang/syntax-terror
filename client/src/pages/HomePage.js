@@ -305,6 +305,7 @@ export default function HomePage() {
     setCurrentGuess(null);
     setPreviousGuess(null);
     setTempGuess(null);
+    setCommonPeopleCounts([])
     setCommonPeople([]);
     setInvalidGuesses(0);
     setGameOver(false);
@@ -329,118 +330,116 @@ export default function HomePage() {
       justifyContent: 'flex-start', 
       height: '100vh', 
       paddingTop: '20px',
-      //backgroundImage: 'url("/DALL·E 2024-07-22 12.48.03.webp")',
-      //backgroundSize: 'cover',
-      //backgroundPosition: 'center',
-      //backgroundRepeat: 'no-repeat'
+      backgroundImage: 'url("/DALLE2024-07-2212.23.37.png")',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
     }}>
       {isAuthenticated ? (
-        <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
-          <h2>Welcome, {user.name}!</h2>
-        </div>
-      ) : (
-        <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
-          <h2>Please <span style={{ color: 'blue', cursor: 'pointer' }} onClick={loginWithRedirect}>log in</span> to play the game.</h2>
-        </div>
-      )}
-  
-      {gameStarted ? (
-        gameOver ? (
-          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '20px', borderRadius: '10px' }}>
-            <h2>Game Over</h2>
-            <h3>Final Score: {score-invalidGuesses}</h3>
-            {/* <h3>Hints used: {hintsUsed}</h3> */}
-            <Button variant="contained" color="primary" onClick={handleRestart}>Restart</Button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', width: '50%', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <input
-                type="text"
-                value={movieTitle}
-                onChange={handleInputChange}
-                placeholder="Type a movie title..."
-                style={{ width: '80%', padding: '10px', fontSize: '16px' }}
-              />
-              <div style={{ marginLeft: '10px', fontSize: '14px', lineHeight: '30px' }}>
-                <strong>Invalid Guesses:</strong> {invalidGuesses}
-              </div>
-              <div style={{ marginLeft: '10px', fontSize: '14px', lineHeight: '30px' }}>
-                <strong>Score:</strong> {score}
-              </div>
+        gameStarted ? (
+          gameOver ? (
+            <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '20px', borderRadius: '10px' }}>
+              <h2>Game Over</h2>
+              <h3>Final Score: {score-invalidGuesses}</h3>
+              {/* <h3>Hints used: {hintsUsed}</h3> */}
+              <Button variant="contained" color="primary" onClick={handleRestart}>Restart</Button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'left' }}>
-              <Button variant="contained" color="primary" onClick={handleHint}>Hint</Button>
-              {isHintVisible && <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
+          ) : (
+            <div style={{ display: 'flex', width: '50%', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={movieTitle}
+                  onChange={handleInputChange}
+                  placeholder="Type a movie title..."
+                  style={{ width: '80%', padding: '10px', fontSize: '16px' }}
+                />
+                <div style={{ marginLeft: '10px', fontSize: '14px', lineHeight: '30px' }}>
+                  <strong>Invalid Guesses:</strong> {invalidGuesses}
+                </div>
+                <div style={{ marginLeft: '10px', fontSize: '14px', lineHeight: '30px' }}>
+                  <strong>Score:</strong> {score}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'left' }}>
+                <Button variant="contained" color="primary" onClick={handleHint}>Hint</Button>
+                {isHintVisible && <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
                 {hint.map((person)=>person.name).join(', ')}
                 </div>}
+              </div>
+              {suggestions.length > 0 && (
+                <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
+                  <ul>
+                    {suggestions.map((suggestion) => (
+                      <li
+                        key={suggestion.movieID}
+                        onClick={() => handleMovieSelect(suggestion)}
+                        style={{
+                          cursor: 'pointer',
+                          color: validGuesses.some(guess => guess.movieID === suggestion.movieID) ? 'red' : 'black'
+                        }}
+                      >
+                        {suggestion.title} ({suggestion.releaseYear})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {(currentGuess || previousGuess) && (
+                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  {previousGuess && (
+                    <div style={{ flex: '1', textAlign: 'left' }}>
+                      <p><strong>Previous Guess:</strong> {previousGuess.title} ({previousGuess.releaseYear})</p>
+                      {previousPosterUrl && (
+                        <img src={previousPosterUrl} alt={previousGuess.title} style={{ marginTop: '10px', maxWidth: '200px', maxHeight: '300px' }} />
+                      )}
+                    </div>
+                  )}
+                  
+                  {commonPeople.length > 0 && (
+                    <div style={{ flex: '1', textAlign: 'center' }}>
+                      <h4>Common People:</h4>
+                      <ul>
+                        {commonPeople.map((person) => (
+                          <li key={person.personID}>
+                            {person.name} (Appeared {commonPeopleCounts[person.personID] || 0} times)
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {currentGuess && (
+                    <div style={{ flex: '1', textAlign: 'right' }}>
+                      <p><strong>Current Guess:</strong> {currentGuess.title} ({currentGuess.releaseYear})</p>
+                      {posterUrl && (
+                        <img src={posterUrl} alt={currentGuess.title} style={{ marginTop: '10px', maxWidth: '200px', maxHeight: '300px' }} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {invalidGuesses > 0 && invalidGuessReason && (
+                <div style={{ marginTop: '20px', color: 'red' }}>
+                  <p>Invalid Guess: {invalidGuessReason}</p>
+                  {invalidPersonName && <p>{invalidPersonName} has been used too many times.</p>}
+                </div>
+              )}
+              {isTimerRunning && (
+                <div style={{ position: 'fixed', top: '100px', left: '10px', fontSize: '24px', backgroundColor: 'white', padding: '5px', borderRadius: '5px' }}>
+                  <p>Time Remaining: {timer} seconds</p>
+                </div>
+              )}
             </div>
-            {suggestions.length > 0 && (
-              <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
-                <ul>
-                  {suggestions.map((suggestion) => (
-                    <li
-                      key={suggestion.movieID}
-                      onClick={() => handleMovieSelect(suggestion)}
-                      style={{
-                        cursor: 'pointer',
-                        color: validGuesses.some(guess => guess.movieID === suggestion.movieID) ? 'red' : 'black'
-                      }}
-                    >
-                      {suggestion.title} ({suggestion.releaseYear})
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {(currentGuess || previousGuess) && (
-              <div style={{ marginTop: '20px', alignSelf: 'flex-start', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                {previousGuess && (
-                  <div style={{ flex: '1', textAlign: 'left' }}>
-                    <p><strong>Previous Guess:</strong> {previousGuess.title} ({previousGuess.releaseYear})</p>
-                    {previousPosterUrl && (
-                      <img src={previousPosterUrl} alt={previousGuess.title} style={{ marginTop: '10px', maxWidth: '200px', maxHeight: '300px' }} />
-                    )}
-                  </div>
-                )}
-                {currentGuess && (
-                  <div style={{ flex: '1', textAlign: 'right' }}>
-                    <p><strong>Current Guess:</strong> {currentGuess.title} ({currentGuess.releaseYear})</p>
-                    {posterUrl && (
-                      <img src={posterUrl} alt={currentGuess.title} style={{ marginTop: '10px', maxWidth: '200px', maxHeight: '300px' }} />
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-            {commonPeople.length > 0 && (
-              <div style={{ marginTop: '20px', alignSelf: 'center', textAlign: 'center' }}>
-                <h4>Common People:</h4>
-                <ul>
-                  {commonPeople.map((person) => (
-                    <li key={person.personID}>
-                      {person.name} (Appeared {commonPeopleCounts[person.personID] || 0} times)
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {invalidGuesses > 0 && invalidGuessReason && (
-              <div style={{ marginTop: '20px', color: 'red' }}>
-                <p>Invalid Guess: {invalidGuessReason}</p>
-                {invalidPersonName && <p>{invalidPersonName} has been used too many times.</p>}
-              </div>
-            )}
-            {isTimerRunning && (
-              <div style={{ position: 'fixed', top: '100px', left: '10px', fontSize: '24px', backgroundColor: 'white', padding: '5px', borderRadius: '5px' }}>
-                <p>Time Remaining: {timer} seconds</p>
-              </div>
-            )}
+          )
+        ) : (
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+            <Button variant="contained" color="primary" onClick={() => setGameStarted(true)}>Click to Start Game</Button>
           </div>
         )
       ) : (
-        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-          <Button variant="contained" color="primary" onClick={() => setGameStarted(true)}>Click to Start Game</Button>
+        <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
+          <h2>Please <span style={{ color: 'blue', cursor: 'pointer' }} onClick={loginWithRedirect}>log in</span> to play the game.</h2>
         </div>
       )}
     </div>

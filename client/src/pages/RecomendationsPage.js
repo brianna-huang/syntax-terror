@@ -78,7 +78,6 @@ export default function Recommendations() {
       >
         {isAuthenticated ? (
           <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
-            <h2>Welcome, {user.name}!</h2>
           </div>
         ) : (
           <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
@@ -89,7 +88,7 @@ export default function Recommendations() {
 
       {isAuthenticated && movieRecs.length > 0 && (
         <>
-          <h3>Recommended Movies based on Guess History</h3> {/* Title for Recommended Movies Table */}
+          <h3>Recommended Movies based on Your Guess History</h3> {/* Title for Recommended Movies Table */}
           <TableContainer component={Paper} style={{ marginTop: '20px', width: '100%' }}>
             <Table>
               <TableHead>
@@ -131,7 +130,7 @@ export default function Recommendations() {
 
       {filteredInTheatres.length > 0 && (
         <>
-          <h3>Recommended Movies In Theatres</h3> {/* Title for In Theatres Table */}
+          <h3>Your Recommended Movies Currently In Theatres</h3> {/* Title for In Theatres Table */}
           <TableContainer component={Paper} style={{ marginTop: '20px', width: '100%' }}>
             <Table>
               <TableHead>
