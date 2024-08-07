@@ -27,11 +27,10 @@ export default function HomePage() {
   const [timer, setTimer] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [hint, setHint] = useState([]);
-  const [ isHintVisible, setIsHintVisible ] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [isHintVisible, setIsHintVisible ] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState(null); 
 
-  console.log(validGuesses)
-  console.log(score)
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -105,7 +104,7 @@ export default function HomePage() {
         try {
           const response = await fetch(`http://${config.server_host}:${config.server_port}/movie_poster?movieID=${currentGuess.movieID}`);
           const posterData = await response.json();
-          console.log(posterData)
+          // console.log(posterData)
           setPosterUrl(`https://image.tmdb.org/t/p/w500/${posterData}`);
         } catch (error) {
           console.error('Error fetching movie poster:', error);
@@ -138,18 +137,22 @@ export default function HomePage() {
 
   useEffect(() => {
     const updateHint = async () => {
-      try {
-        const response = await fetch(`http://${config.server_host}:${config.server_port}/hint/${currentGuess.movieID}`);
-        const newHint = await response.json();
-        setHint(newHint);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+      if (currentGuess){
+        try {
+          // const response = await 
+          fetch(`http://${config.server_host}:${config.server_port}/hint?movieID=${currentGuess.movieID}`)
+            .then(res => res.json())
+            .then(resJson => setHint(resJson));
+          // if (!response.ok) {
+          //   throw new Error('Network response was not ok');
+          // }
+        } catch (error) {
+          console.error('Error getting hint:', error);
         }
-      } catch (error) {
-        console.error('Error getting hint:', error);
       }
-    };
-    updateHint()
+    }
+    setIsHintVisible(false);
+    updateHint();
   }, [currentGuess])
 
   useEffect(() => { // Function to clear timeout for debouncing
@@ -311,11 +314,11 @@ export default function HomePage() {
   };
 
   const handleHint = () =>{
-    setIsHintVisible(true);
-    setTimeout(() => {
-      setIsHintVisible(false);
-    }, 5000);
-  }
+    if(hint.length > 0){
+      setIsHintVisible(true);
+      setHintsUsed(hintsUsed + 1);
+    }
+  };
 
   return (
     <div 
@@ -345,7 +348,8 @@ export default function HomePage() {
         gameOver ? (
           <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '20px', borderRadius: '10px' }}>
             <h2>Game Over</h2>
-            <h2>Final Score: {score-invalidGuesses}</h2>
+            <h3>Final Score: {score-invalidGuesses}</h3>
+            {/* <h3>Hints used: {hintsUsed}</h3> */}
             <Button variant="contained" color="primary" onClick={handleRestart}>Restart</Button>
           </div>
         ) : (
@@ -367,7 +371,9 @@ export default function HomePage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'left' }}>
               <Button variant="contained" color="primary" onClick={handleHint}>Hint</Button>
-              {isHintVisible && <div className='hint-inner'>{hint}</div>}
+              {isHintVisible && <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>
+                {hint.map((person)=>person.name).join(', ')}
+                </div>}
             </div>
             {suggestions.length > 0 && (
               <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' }}>

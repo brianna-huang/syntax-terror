@@ -47,6 +47,7 @@ app.get('/known_for_titles', routes.known_for_titles);
 app.get('/movie_recs', routes.movie_recs);
 app.get('/in_theatres', routes.in_theatres);
 app.get('/top_genre_ids', routes.top_genre_ids);
+app.get('/hint', routes.hint);
 
 app.get('/track-user', routes.track_user);
 

@@ -436,21 +436,22 @@ const movie_recs = async function(req, res) {
   });
 };
 
+// Route: GET /hint?movieID=?
 const hint = async function(req, res){
-  const movie_id = req.params.movie_id;
+  const movieID = req.query.movieID;
   const query = `
   SELECT DISTINCT p.name
   FROM Person p
   JOIN (
       SELECT a.personID
       FROM ActingRole a
-      WHERE a.movieID = 'tt0137523'
+      WHERE a.movieID = '${movieID}'
       UNION
       SELECT d.personID
       FROM DirectingRole d
-      WHERE d.movieID = '${movie_id}'
-  ) t ON p.personID = t.personID;
-  LIMIT 3
+      WHERE d.movieID = '${movieID}'
+  ) t ON p.personID = t.personID
+  LIMIT 3;
   `
   connection.query(query, (err, data) => {
     if (err) {
@@ -534,5 +535,6 @@ module.exports = {
   known_for_titles,
   movie_recs,
   in_theatres,
-  top_genre_ids
+  top_genre_ids,
+  hint
 }
