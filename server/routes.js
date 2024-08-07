@@ -275,7 +275,13 @@ const movie_poster = async function(req, res) {
 
   try {
     const response = await fetch(`https://api.themoviedb.org/3/find/${movieID}?external_source=imdb_id`, options);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch movie data' });
+    }
     const data = await response.json();
+    if (!data['movie_results'] || data['movie_results'].length === 0) {
+      return res.status(404).json({ error: 'No movie found' });
+    }
     res.json(data['movie_results'][0].poster_path);
   } catch (err) {
     console.error(err);
@@ -348,8 +354,13 @@ const movie_info_TMDB = async function(req, res) {
 
   try {
     const response = await fetch(`https://api.themoviedb.org/3/find/${movieID}?external_source=imdb_id`, options);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch movie data' });
+    }
     const data = await response.json();
-
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: 'No movie found' });
+    }
     res.json(data);
   } catch (err) {
     console.error(err);
@@ -371,8 +382,13 @@ const person_info_TMDB = async function(req, res) {
 
   try {
     const response = await fetch(`https://api.themoviedb.org/3/find/${personID}?external_source=imdb_id`, options);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch movie data' });
+    }
     const data = await response.json();
-
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: 'No movie found' });
+    }
     res.json(data);
   } catch (err) {
     console.error(err);

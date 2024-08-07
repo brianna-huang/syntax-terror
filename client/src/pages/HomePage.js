@@ -433,7 +433,15 @@ export default function HomePage() {
             </div>
           )
         ) : (
-          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+          <div style={{ position: 'fixed', top: '30%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', fontSize: '14px' }}>
+            <h2> Rules: 
+              <p>First, Enter a movie you like.</p>
+              <p>For every movie entered after, there has to be at least one common cast member or director.</p>
+              <p>You can only connect a movie by a specific person 3 times</p>
+              <p>Use a hint if you get stuck.</p>
+              <p>Try to beat your high score!</p>
+              <p>Good Luck</p>
+            </h2>
             <Button variant="contained" color="primary" onClick={() => setGameStarted(true)}>Click to Start Game</Button>
           </div>
         )
