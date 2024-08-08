@@ -31,7 +31,6 @@ export default function HomePage() {
   const [isHintVisible, setIsHintVisible ] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState(null); 
 
-
   useEffect(() => {
     if (isAuthenticated && user) {
       fetch(`http://${config.server_host}:${config.server_port}/get_userID?userSub=${user.sub}`)
@@ -143,6 +142,11 @@ export default function HomePage() {
           fetch(`http://${config.server_host}:${config.server_port}/hint?movieID=${currentGuess.movieID}`)
             .then(res => res.json())
             .then(resJson => setHint(resJson));
+          
+          // fetch(`http://${config.server_host}:${config.server_port}/movie_people/${currentGuess.movieID}`)
+          //   .then(res => res.json())
+          //   .then(resJson => console.log("people:", resJson));
+
           // if (!response.ok) {
           //   throw new Error('Network response was not ok');
           // }
@@ -340,7 +344,7 @@ export default function HomePage() {
           gameOver ? (
             <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '20px', borderRadius: '10px' }}>
               <h2>Game Over</h2>
-              <h3>Final Score: {score-invalidGuesses}</h3>
+              <h3>Final Score: {score}</h3>
               {/* <h3>Hints used: {hintsUsed}</h3> */}
               <Button variant="contained" color="primary" onClick={handleRestart}>Restart</Button>
             </div>
@@ -399,7 +403,7 @@ export default function HomePage() {
                   {commonPeople.length > 0 && (
                     <div style={{ flex: '1', textAlign: 'center' }}>
                       <h4>Common People:</h4>
-                      <ul>
+                      <ul style={{ flex: '1', textAlign: 'left' }}>
                         {commonPeople.map((person) => (
                           <li key={person.personID}>
                             {person.name} (Appeared {commonPeopleCounts[person.personID] || 0} times)
@@ -433,16 +437,16 @@ export default function HomePage() {
             </div>
           )
         ) : (
-          <div style={{ position: 'fixed', top: '30%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', fontSize: '14px' }}>
-            <h2> Rules: 
-              <p>First, Enter a movie you like.</p>
-              <p>For every movie entered after, there has to be at least one common cast member or director.</p>
-              <p>You can only connect a movie by a specific person 3 times</p>
-              <p>Use a hint if you get stuck.</p>
-              <p>Try to beat your high score!</p>
-              <p>Good Luck</p>
-            </h2>
-            <Button variant="contained" color="primary" onClick={() => setGameStarted(true)}>Click to Start Game</Button>
+          // { position: 'fixed', top: '40%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'left', fontSize: '14px' }
+          <div style={{ marginTop: '10px', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '5px' , position: 'fixed'}}>
+            <h2> HOW TO PLAY </h2>
+            <p>Enter a movie you like from the search bar, and the timer will begin.</p>
+            <p>You have <b>30 seconds</b> to enter another movie that has at least one common actor or director.</p>
+            <p>Chain as many movies together as possible.</p>
+            <p>You can only connect a movie by a specific person <b>3 times.</b></p>
+            <p>Use a hint if you get stuck and try to beat your high score.</p>
+            <p>Good luck!</p>
+            <Button variant="contained" color="primary" onClick={() => setGameStarted(true)}>Start</Button>
           </div>
         )
       ) : (
