@@ -133,7 +133,7 @@ const movie_id = async function(req, res) {
   const query = `
   SELECT movieID, title, releaseYear
   FROM Movie
-  WHERE lower_title LIKE ?
+  WHERE title LIKE ?
   AND numVotes > 500
   ORDER BY numVotes DESC
   LIMIT 10;
@@ -149,7 +149,7 @@ const movie_id = async function(req, res) {
       const query2 = `
       SELECT movieID, title, releaseYear
       FROM Movie
-      WHERE lower_title LIKE ?
+      WHERE title LIKE ?
       ORDER BY numVotes DESC
       LIMIT 10;
       `;
