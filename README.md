@@ -25,7 +25,7 @@ Run from the **server** directory from a terminal window, and from the **client*
 Database credentials:
 
 Username: SyntaxTerror
-Password: goTeamABJJ24
+Password: ************
 Endpoint: database-1.cdnhrrbdjibz.us-east-1.rds.amazonaws.com
 Port: 3306
 
