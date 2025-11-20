@@ -1,4 +1,4 @@
-## Syntax Terror
+## The Movie Chain Game
 
 Our web application is motivated by the universal love for movies! It challenges film lovers with a game feature to test their knowledge of movies, actors, and directors. To provide a tailored experience to each user, the site also includes movie information and recommendations.
 
@@ -20,12 +20,3 @@ Then launch the application:
 npm start
 ```
 Run from the **server** directory from a terminal window, and from the **client** directory from a separate terminal window. This should automatically launch the localhost.
-
-
-Database credentials:
-
-Username: SyntaxTerror
-Password: ************
-Endpoint: database-1.cdnhrrbdjibz.us-east-1.rds.amazonaws.com
-Port: 3306
-
